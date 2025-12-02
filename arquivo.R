@@ -1,15 +1,11 @@
-# -----------------------------------------------------
 # PROJETO DE MATRIZES E GRAFOS – MARKETPLACES
-# -----------------------------------------------------
 
 # Instalar pacotes caso não possua
 # install.packages("igraph")
 
 library(igraph)
 
-# -----------------------------------------------------
 # DADOS DA PESQUISA
-# -----------------------------------------------------
 
 marketplaces <- list(
   "Mercado Livre" = c("Estevão", "Joaquim", "Artur", "Jenie", "Gustavo", "Matheus", "Daniel"),
@@ -22,9 +18,7 @@ marketplaces <- list(
 alunos <- sort(unique(unlist(marketplaces)))
 mkt     <- names(marketplaces)
 
-# -----------------------------------------------------
 # MATRIZ DE INCIDÊNCIA (Alunos x Marketplaces)
-# -----------------------------------------------------
 
 incidencia <- matrix(0, nrow = length(alunos), ncol = length(mkt),
                      dimnames = list(alunos, mkt))
@@ -36,27 +30,21 @@ for (mp in mkt) {
 cat("\n MATRIZ DE INCIDÊNCIA:\n")
 print(incidencia)
 
-# -----------------------------------------------------
 # MATRIZ DE SIMILARIDADE (Aluno ↔ Aluno)
-# -----------------------------------------------------
 
 similaridade <- incidencia %*% t(incidencia)
 
 cat("\n MATRIZ DE SIMILARIDADE:\n")
 print(similaridade)
 
-# -----------------------------------------------------
 # MATRIZ DE COOCORRÊNCIA (Marketplace ↔ Marketplace)
-# -----------------------------------------------------
 
 coocorrencia <- t(incidencia) %*% incidencia
 
 cat("\n MATRIZ DE COOCORRÊNCIA:\n")
 print(coocorrencia)
 
-# -----------------------------------------------------
 # GRAFO DE INCIDÊNCIA (bipartido)
-# -----------------------------------------------------
 
 g_inc <- graph_from_incidence_matrix(incidencia)
 
@@ -69,9 +57,7 @@ print(list(
   clustering = transitivity(g_inc, type = "localaverage")
 ))
 
-# -----------------------------------------------------
 # GRAFO DE SIMILARIDADE ENTRE ALUNOS
-# -----------------------------------------------------
 
 # Remove diagonal e liga apenas pares com similaridade > 0
 similaridade_no_diag <- similaridade
@@ -88,9 +74,7 @@ print(list(
   clustering = transitivity(g_sim, type = "localaverage")
 ))
 
-# -----------------------------------------------------
 # GRAFO DE COOCORRÊNCIA ENTRE MARKETPLACES
-# -----------------------------------------------------
 
 cooc_no_diag <- coocorrencia
 diag(cooc_no_diag) <- 0
@@ -106,9 +90,7 @@ print(list(
   clustering = transitivity(g_cooc, type = "localaverage")
 ))
 
-# -----------------------------------------------------
 # PLOTS DOS GRAFOS (opcional)
-# -----------------------------------------------------
 par(mfrow = c(1,3))
 
 plot(g_inc,
