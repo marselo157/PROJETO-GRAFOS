@@ -1,0 +1,21 @@
+from,to,weight
+Estevão,Mercado Livre,1
+Joaquim,Mercado Livre,1
+Artur,Mercado Livre,1
+Jenie,Mercado Livre,1
+Gustavo,Mercado Livre,1
+Matheus,Mercado Livre,1
+Daniel,Mercado Livre,1
+Estevão,Amazon,1
+Joaquim,Amazon,1
+Gustavo,Amazon,1
+Matheus,Amazon,1
+Jenie,Shopee,1
+Simone,Shopee,1
+Estevão,Shopee,1
+Vinicius,Shopee,1
+Matheus,Shein,1
+Simone,Shein,1
+Estevão,Shein,1
+Maisa,Shein,1
+Daniel,AliExpress,1

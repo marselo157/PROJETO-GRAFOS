@@ -1,110 +1,118 @@
-# PROJETO DE MATRIZES E GRAFOS – MARKETPLACES
+# ----------------------------------------------------------
+# PROJETO MARKETPLACES — versão seguindo o código fornecido
+# ----------------------------------------------------------
 
-# Instalar pacotes caso não possua
-# install.packages("igraph")
+# Você deve salvar um arquivo .txt ou .csv com 3 colunas:
+# from , to , weight
+#
+# Exemplo de linhas:
+# Estevão, Mercado Livre, 1
+# Joaquim, Mercado Livre, 1
+# Matheus, Shein, 1
+#
+
+# Lê o arquivo
+
+dados <- read.csv(file.choose(), header = TRUE, sep = ",")
+
+
+# Visualiza os dados
+dados
+
+
+# ----------------------------------------------------------
+# MATRIZ DE INCIDÊNCIA (usando xtabs)
+# ----------------------------------------------------------
+
+matriz_inc <- xtabs(weight ~ from + to, data = dados)
+
+class(matriz_inc)        # "table"
+matriz_inc <- unclass(matriz_inc)   # transforma em matriz
+class(matriz_inc)
+
+# Exibe a matriz de incidência
+print(matriz_inc)
+
+
+# ----------------------------------------------------------
+# MATRIZ DE SIMILARIDADE (Aluno × Aluno)
+# ----------------------------------------------------------
+
+s <- matriz_inc %*% t(matriz_inc)
+
+class(s)
+diag(s) <- 0   # remove a diagonal
+s
+
+
+# ----------------------------------------------------------
+# MATRIZ DE COOCORRÊNCIA (Marketplace × Marketplace)
+# ----------------------------------------------------------
+
+c <- t(matriz_inc) %*% matriz_inc
+
+diag(c) <- 0
+c
+
+
+# ----------------------------------------------------------
+# GRAFOS (igual ao modelo fornecido)
+# ----------------------------------------------------------
 
 library(igraph)
 
-# DADOS DA PESQUISA
-
-marketplaces <- list(
-  "Mercado Livre" = c("Estevão", "Joaquim", "Artur", "Jenie", "Gustavo", "Matheus", "Daniel"),
-  "Amazon"        = c("Estevão", "Joaquim", "Gustavo", "Matheus"),
-  "Shopee"        = c("Jenie", "Simone", "Estevão", "Vinicius"),
-  "Shein"         = c("Matheus", "Simone", "Estevão", "Maisa"),
-  "AliExpress"    = c("Daniel")
+# Grafo de incidência — direcionado e ponderado
+grafo_inc <- graph_from_incidence_matrix(
+  matriz_inc,
+  directed = TRUE,
+  mode = "out",
+  weighted = TRUE
 )
 
-alunos <- sort(unique(unlist(marketplaces)))
-mkt     <- names(marketplaces)
+# Grafo de similaridade entre alunos
+grafo_sim <- graph_from_adjacency_matrix(
+  s,
+  weighted = TRUE,
+  mode = "undirected"
+)
 
-# MATRIZ DE INCIDÊNCIA (Alunos x Marketplaces)
-
-incidencia <- matrix(0, nrow = length(alunos), ncol = length(mkt),
-                     dimnames = list(alunos, mkt))
-
-for (mp in mkt) {
-  incidencia[marketplaces[[mp]], mp] <- 1
-}
-
-cat("\n MATRIZ DE INCIDÊNCIA:\n")
-print(incidencia)
-
-# MATRIZ DE SIMILARIDADE (Aluno ↔ Aluno)
-
-similaridade <- incidencia %*% t(incidencia)
-
-cat("\n MATRIZ DE SIMILARIDADE:\n")
-print(similaridade)
-
-# MATRIZ DE COOCORRÊNCIA (Marketplace ↔ Marketplace)
-
-coocorrencia <- t(incidencia) %*% incidencia
-
-cat("\n MATRIZ DE COOCORRÊNCIA:\n")
-print(coocorrencia)
-
-# GRAFO DE INCIDÊNCIA (bipartido)
-
-g_inc <- graph_from_incidence_matrix(incidencia)
-
-cat("\n--- MÉTRICAS GRAFO DE INCIDÊNCIA ---\n")
-print(list(
-  degree = degree(g_inc),
-  betweenness = betweenness(g_inc),
-  closeness = closeness(g_inc),
-  eigenvector = eigen_centrality(g_inc)$vector,
-  clustering = transitivity(g_inc, type = "localaverage")
-))
-
-# GRAFO DE SIMILARIDADE ENTRE ALUNOS
-
-# Remove diagonal e liga apenas pares com similaridade > 0
-similaridade_no_diag <- similaridade
-diag(similaridade_no_diag) <- 0
-
-g_sim <- graph_from_adjacency_matrix(similaridade_no_diag, mode = "undirected", weighted = TRUE)
-
-cat("\n--- MÉTRICAS GRAFO DE SIMILARIDADE ---\n")
-print(list(
-  degree = degree(g_sim),
-  betweenness = betweenness(g_sim),
-  closeness = closeness(g_sim),
-  eigenvector = eigen_centrality(g_sim)$vector,
-  clustering = transitivity(g_sim, type = "localaverage")
-))
-
-# GRAFO DE COOCORRÊNCIA ENTRE MARKETPLACES
-
-cooc_no_diag <- coocorrencia
-diag(cooc_no_diag) <- 0
-
-g_cooc <- graph_from_adjacency_matrix(cooc_no_diag, mode = "undirected", weighted = TRUE)
-
-cat("\n--- MÉTRICAS GRAFO DE COOCORRÊNCIA ---\n")
-print(list(
-  degree = degree(g_cooc),
-  betweenness = betweenness(g_cooc),
-  closeness = closeness(g_cooc),
-  eigenvector = eigen_centrality(g_cooc)$vector,
-  clustering = transitivity(g_cooc, type = "localaverage")
-))
-
-# PLOTS DOS GRAFOS (opcional)
-par(mfrow = c(1,3))
-
-plot(g_inc,
-     main = "Grafo de Incidência",
-     vertex.color = ifelse(V(g_inc)$type, "lightblue", "orange"),
-     vertex.size = 20)
-
-plot(g_sim,
-     main = "Grafo de Similaridade (Alunos)",
-     vertex.color = "lightgreen",
-     vertex.size = 20)
+# Grafo de coocorrência entre marketplaces
+grafo_co <- graph_from_adjacency_matrix(
+  c,
+  weighted = TRUE,
+  mode = "undirected"
+)
 
 
-plot(g_cooc,
-     main = "Grafo de Coocorrência (Marketplaces)",
-     vertex.color = "salmon",
-     vertex.size = 20)
+# ----------------------------------------------------------
+# PLOTS
+# ----------------------------------------------------------
+
+plot(grafo_inc, edge.width = E(grafo_inc)$weight, edge.arrow.size = 0.1)
+plot(grafo_sim, edge.width = E(grafo_sim)$weight)
+plot(grafo_co, edge.width = E(grafo_co)$weight)
+
+
+# ----------------------------------------------------------
+# MÉTRICAS TOPOLOGICAS (iguais ao modelo fornecido)
+# ----------------------------------------------------------
+
+# Vértices
+V(grafo_sim)
+length(V(grafo_sim))
+
+# Arestas
+E(grafo_sim)
+ecount(grafo_sim)
+
+# Grau
+degree(grafo_sim)
+mean(degree(grafo_sim))
+
+# Pesos e força média
+E(grafo_sim)$weight
+mean(E(grafo_sim)$weight)
+
+# Densidade da rede
+edge_density(grafo_sim, loops = FALSE)
+
